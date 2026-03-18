@@ -1,0 +1,97 @@
+---
+title: "MTH6139 Time Series" 
+subtitle: "Coursework 1 -- Analysis of CO2 concentration over time in Hawaii" 
+author: "Robin Arslan" 
+date: "18/03/26" 
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: spacelab 
+    highlight: tango
+---
+ 
+```{r, echo=FALSE}
+# This code will display the QMUL logo at the top right of the page
+# Do not change this code
+htmltools::img(src = knitr::image_uri("images/QMlogo.png"),
+               alt = 'logo',
+               style = 'position:absolute; top:0; right:0; padding:10px; width:20%;')
+```
+
+
+# Introduction 
+
+In this project, I analyse the CO2 time series dataset available in R. This time series looks at the atmospheric carbon dioxide concentrations which was measured by the Mauna Loa Observatory in Hawaii. The analysis of this time series includes looking at its trend and seasonality.
+
+# Exploring the data
+
+First we must plot the time series to get a general understanding.
+
+```{r}
+plot(co2, main = "Monthly Atmospheric CO2", ylab = "CO2 concentration(ppm)", xlab = "Year")
+```
+
+This plot shows as the years go on the co2 concentration increases showing an upward trend as well as a pattern which shows that there is seasonality.
+
+# Properties of the time series
+
+```{r}
+summary(co2)
+start(co2)
+end(co2)
+frequency(co2)
+```
+With this we can see that the time series begins in January 1959 and ends December 1997 - 38 years and there are 12 obsrvations per year meaning the data is recorded monthly.
+
+# Preparing the data for Prophet
+
+The data must be stored in a dataframe with two columns called ds (contains the dates) and y (contains the observed values) in order to use the Prophet forecasting model.
+
+```{r, message=FALSE, warning=FALSE}
+library(prophet)
+library(zoo)
+
+co2_data <- data.frame(
+    ds = as.Date(as.yearmon(time(co2))),
+    y = as.numeric(co2)    
+         )
+
+```
+
+Now the Prophet model can be used on the dataset.
+Prophet is a forecasting model that divides a time series into components like trend and seasonality allowing the predictions of future values.
+
+# Forecasting with Prophet
+
+```{r, message=FALSE, warning=FALSE}
+co2_model <- prophet(co2_data)
+
+
+```
+
+Now predictions (future forecasting) can be made.
+
+```{r}
+future_dates <- make_future_dataframe(co2_model, periods = 12, freq = "month")
+co2_forecast <- predict(co2_model, future_dates)
+```
+
+This forecast can now be plotted to see any trends.
+
+```{r}
+plot(co2_model, co2_forecast)
+```
+
+# Forecast components
+
+```{r, warning=FALSE}
+prophet_plot_components(co2_model, co2_forecast)
+```
+
+
+# Conclusion
+
+After analysing the current time series and forecasting the data shows an upward trend and a repeating seasonal pattern which suggests that CO2 levels are likely to continue to increase in the same manner as the years increase.
+
+
